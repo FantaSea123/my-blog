@@ -1,0 +1,29 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>我的博客</title>
+  <link rel="stylesheet" href="/css/style.css">
+</head>
+<body>
+  <nav class="navbar">
+    <div class="container nav-container">
+      <a href="/" class="logo">📝 我的博客</a>
+      <div class="nav-links">
+        <form class="search-form" action="/" method="GET">
+          <input type="text" name="search" placeholder="搜索文章..."
+                 value="<%= typeof search !== 'undefined' ? search : '' %>">
+        </form>
+        <% if (currentUser) { %>
+          <a href="/posts/new" class="btn btn-primary">✍️ 写文章</a>
+          <span class="nav-user">👤 <%= currentUser.username %></span>
+          <a href="/auth/logout" class="btn btn-outline">退出</a>
+        <% } else { %>
+          <a href="/auth/login" class="btn btn-outline">登录</a>
+          <a href="/auth/register" class="btn btn-primary">注册</a>
+        <% } %>
+      </div>
+    </div>
+  </nav>
+  <main class="container main-content">

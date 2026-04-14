@@ -1,0 +1,27 @@
+<%- include('partials/header') %>
+
+<div class="auth-container">
+  <h1>🔑 登录</h1>
+
+  <% if (error) { %>
+    <div class="alert alert-error"><%= error %></div>
+  <% } %>
+
+  <form action="/auth/login" method="POST" class="auth-form">
+    <div class="form-group">
+      <label for="email">邮箱</label>
+      <input type="email" id="email" name="email" required placeholder="your@email.com">
+    </div>
+
+    <div class="form-group">
+      <label for="password">密码</label>
+      <input type="password" id="password" name="password" required placeholder="输入密码">
+    </div>
+
+    <button type="submit" class="btn btn-primary btn-block">登录</button>
+  </form>
+
+  <p class="auth-switch">还没有账号？<a href="/auth/register">去注册</a></p>
+</div>
+
+<%- include('partials/footer') %>

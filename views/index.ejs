@@ -1,0 +1,47 @@
+<%- include('partials/header') %>
+
+<section class="hero">
+  <h1>欢迎来到我的博客</h1>
+  <p>记录技术、分享生活</p>
+</section>
+
+<% if (tag) { %>
+  <div class="filter-info">
+    <span>标签筛选: <strong><%= tag %></strong></span>
+    <a href="/">清除筛选</a>
+  </div>
+<% } %>
+
+<% if (posts.length === 0) { %>
+  <div class="empty-state">
+    <h2>📭 暂无文章</h2>
+    <p>还没有发布任何文章，快去写一篇吧！</p>
+  </div>
+<% } else { %>
+  <div class="posts-grid">
+    <% posts.forEach(function(post) { %>
+      <article class="post-card">
+        <div class="post-meta">
+          <span>👤 <%= post.author_name %></span>
+          <span>📅 <%= new Date(post.created_at).toLocaleDateString('zh-CN') %></span>
+          <span>👁 <%= post.views %></span>
+        </div>
+        <h2 class="post-title">
+          <a href="/posts/<%= post.id %>"><%= post.title %></a>
+        </h2>
+        <p class="post-summary"><%= post.summary %></p>
+        <% if (post.tags) { %>
+          <div class="post-tags">
+            <% post.tags.split(',').forEach(function(t) { %>
+              <% if (t.trim()) { %>
+                <a href="/?tag=<%= t.trim() %>" class="tag">#<%= t.trim() %></a>
+              <% } %>
+            <% }) %>
+          </div>
+        <% } %>
+      </article>
+    <% }) %>
+  </div>
+<% } %>
+
+<%- include('partials/footer') %>
