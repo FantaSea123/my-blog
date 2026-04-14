@@ -18,10 +18,11 @@ app.use(express.urlencoded({ extended: true }));
 app.use(methodOverride('_method'));
 
 app.use(session({
-  secret: process.env.SESSION_SECRET,
+  secret: process.env.SESSION_SECRET || 'my_blog_secret_key_2024',
   resave: false,
   saveUninitialized: false
 }));
+
 
 // 让所有页面都能访问当前登录用户
 app.use((req, res, next) => {
