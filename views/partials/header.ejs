@@ -4,23 +4,29 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>我的博客</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="/css/style.css">
 </head>
 <body>
   <nav class="navbar">
     <div class="container nav-container">
-      <a href="/" class="logo">📝 我的博客</a>
+      <a href="/" class="logo">My<span>Blog</span></a>
       <div class="nav-links">
         <form class="search-form" action="/" method="GET">
           <input type="text" name="search" placeholder="搜索文章..."
                  value="<%= typeof search !== 'undefined' ? search : '' %>">
         </form>
         <% if (currentUser) { %>
-          <a href="/posts/new" class="btn btn-primary">✍️ 写文章</a>
-          <span class="nav-user">👤 <%= currentUser.username %></span>
-          <a href="/auth/logout" class="btn btn-outline">退出</a>
+          <a href="/posts/new" class="btn btn-primary">写文章</a>
+          <a href="/user/<%= encodeURIComponent(currentUser.username) %>" title="<%= currentUser.username %>">
+            <img src="/avatar/<%= encodeURIComponent(currentUser.username) %>"
+                 class="nav-avatar" alt="<%= currentUser.username %>">
+          </a>
+          <a href="/auth/logout" class="btn btn-ghost">退出</a>
         <% } else { %>
-          <a href="/auth/login" class="btn btn-outline">登录</a>
+          <a href="/auth/login" class="btn btn-ghost">登录</a>
           <a href="/auth/register" class="btn btn-primary">注册</a>
         <% } %>
       </div>

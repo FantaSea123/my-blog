@@ -1,47 +1,98 @@
 <%- include('partials/header') %>
 
 <section class="hero">
-  <h1>欢迎来到我的博客</h1>
-  <p>记录技术、分享生活</p>
+  <h1>欢迎来到 <span>我的博客</span></h1>
+  <p>记录技术，分享生活</p>
 </section>
 
 <% if (tag) { %>
   <div class="filter-info">
-    <span>标签筛选: <strong><%= tag %></strong></span>
-    <a href="/">清除筛选</a>
+    <span>标签：<strong><%= tag %></strong></span>
+    <a href="/">清除 ×</a>
+  </div>
+<% } %>
+
+<% if (search) { %>
+  <div class="filter-info">
+    <span>搜索：<strong><%= search %></strong></span>
+    <a href="/">清除 ×</a>
   </div>
 <% } %>
 
 <% if (posts.length === 0) { %>
   <div class="empty-state">
-    <h2>📭 暂无文章</h2>
-    <p>还没有发布任何文章，快去写一篇吧！</p>
+    <div class="empty-state-icon">✦</div>
+    <h2>暂无文章</h2>
+    <p>还没有任何内容，快去写第一篇吧</p>
+    <% if (currentUser) { %>
+      <a href="/posts/new" class="btn btn-primary">写文章</a>
+    <% } else { %>
+      <a href="/auth/register" class="btn btn-primary">注册开始写作</a>
+    <% } %>
   </div>
 <% } else { %>
   <div class="posts-grid">
     <% posts.forEach(function(post) { %>
       <article class="post-card">
-        <div class="post-meta">
-          <span>👤 <%= post.author_name %></span>
-          <span>📅 <%= new Date(post.created_at).toLocaleDateString('zh-CN') %></span>
-          <span>👁 <%= post.views %></span>
-        </div>
-        <h2 class="post-title">
-          <a href="/posts/<%= post.id %>"><%= post.title %></a>
-        </h2>
-        <p class="post-summary"><%= post.summary %></p>
-        <% if (post.tags) { %>
-          <div class="post-tags">
-            <% post.tags.split(',').forEach(function(t) { %>
-              <% if (t.trim()) { %>
-                <a href="/?tag=<%= t.trim() %>" class="tag">#<%= t.trim() %></a>
-              <% } %>
-            <% }) %>
+        <div class="post-card-main">
+          <div class="post-meta">
+            <span class="author"><a href="/user/<%= encodeURIComponent(post.author_name) %>"><%= post.author_name %></a></span>
+            <span class="post-meta-dot"></span>
+            <span><%= new Date(post.created_at).toLocaleDateString('zh-CN', { year: 'numeric', month: 'long', day: 'numeric' }) %></span>
           </div>
-        <% } %>
+          <h2 class="post-title">
+            <a href="/posts/<%= post.id %>"><%= post.title %></a>
+          </h2>
+          <p class="post-summary"><%= post.summary %></p>
+          <% if (post.tags) { %>
+            <div class="post-tags">
+              <% post.tags.split(',').forEach(function(t) { %>
+                <% if (t.trim()) { %>
+                  <a href="/?tag=<%= t.trim() %>" class="tag"># <%= t.trim() %></a>
+                <% } %>
+              <% }) %>
+            </div>
+          <% } %>
+        </div>
+        <div class="post-card-side">
+          <span class="post-views"><%= post.views %> 阅读</span>
+        </div>
       </article>
     <% }) %>
   </div>
+
+  <% if (totalPages > 1) { %>
+    <nav class="pagination">
+      <% if (page > 1) { %>
+        <a href="/?page=<%= page - 1 %><%= search ? '&search=' + encodeURIComponent(search) : '' %><%= tag ? '&tag=' + encodeURIComponent(tag) : '' %>"
+           class="page-btn">← 上一页</a>
+      <% } else { %>
+        <span class="page-btn page-btn--disabled">← 上一页</span>
+      <% } %>
+
+      <div class="page-numbers">
+        <% for (let i = 1; i <= totalPages; i++) { %>
+          <% if (i === 1 || i === totalPages || (i >= page - 2 && i <= page + 2)) { %>
+            <% if (i === page) { %>
+              <span class="page-num page-num--active"><%= i %></span>
+            <% } else { %>
+              <a href="/?page=<%= i %><%= search ? '&search=' + encodeURIComponent(search) : '' %><%= tag ? '&tag=' + encodeURIComponent(tag) : '' %>"
+                 class="page-num"><%= i %></a>
+            <% } %>
+          <% } else if (i === page - 3 || i === page + 3) { %>
+            <span class="page-ellipsis">…</span>
+          <% } %>
+        <% } %>
+      </div>
+
+      <% if (page < totalPages) { %>
+        <a href="/?page=<%= page + 1 %><%= search ? '&search=' + encodeURIComponent(search) : '' %><%= tag ? '&tag=' + encodeURIComponent(tag) : '' %>"
+           class="page-btn">下一页 →</a>
+      <% } else { %>
+        <span class="page-btn page-btn--disabled">下一页 →</span>
+      <% } %>
+    </nav>
+  <% } %>
 <% } %>
 
 <%- include('partials/footer') %>

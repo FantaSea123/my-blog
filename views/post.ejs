@@ -1,18 +1,22 @@
 <%- include('partials/header') %>
 
+<a href="/" class="back-link">← 返回首页</a>
+
 <article class="post-detail">
   <header class="post-header">
     <h1><%= post.title %></h1>
     <div class="post-meta">
-      <span>👤 <%= post.author_name %></span>
-      <span>📅 <%= new Date(post.created_at).toLocaleDateString('zh-CN') %></span>
-      <span>👁 <%= post.views %> 次阅读</span>
+      <span class="author"><a href="/user/<%= encodeURIComponent(post.author_name) %>"><%= post.author_name %></a></span>
+      <span class="post-meta-dot"></span>
+      <span><%= new Date(post.created_at).toLocaleDateString('zh-CN', { year: 'numeric', month: 'long', day: 'numeric' }) %></span>
+      <span class="post-meta-dot"></span>
+      <span><%= post.views %> 次阅读</span>
     </div>
     <% if (post.tags) { %>
-      <div class="post-tags">
+      <div class="post-tags" style="margin-top: 14px;">
         <% post.tags.split(',').forEach(function(t) { %>
           <% if (t.trim()) { %>
-            <a href="/?tag=<%= t.trim() %>" class="tag">#<%= t.trim() %></a>
+            <a href="/?tag=<%= t.trim() %>" class="tag"># <%= t.trim() %></a>
           <% } %>
         <% }) %>
       </div>
@@ -25,15 +29,57 @@
 
   <% if (currentUser && currentUser.id === post.author_id) { %>
     <div class="post-actions">
-      <a href="/posts/<%= post.id %>/edit" class="btn btn-primary">✏️ 编辑</a>
+      <a href="/posts/<%= post.id %>/edit" class="btn btn-outline">编辑文章</a>
       <form action="/posts/<%= post.id %>?_method=DELETE" method="POST" style="display:inline"
             onsubmit="return confirm('确定要删除这篇文章吗？')">
-        <button type="submit" class="btn btn-danger">🗑 删除</button>
+        <button type="submit" class="btn btn-danger">删除文章</button>
       </form>
     </div>
   <% } %>
 </article>
 
-<a href="/" class="back-link">← 返回首页</a>
+<!-- 评论区 -->
+<section class="comments-section">
+  <div class="comments-header">
+    评论
+    <span class="comments-count"><%= comments.length %></span>
+  </div>
+
+  <!-- 发表评论 -->
+  <% if (currentUser) { %>
+    <form action="/posts/<%= post.id %>/comments" method="POST" class="comment-form">
+      <textarea name="content" rows="3" required placeholder="写下你的想法..."></textarea>
+      <button type="submit" class="btn btn-primary">发表评论</button>
+    </form>
+  <% } else { %>
+    <p class="login-hint"><a href="/auth/login">登录</a> 后才能发表评论</p>
+  <% } %>
+
+  <!-- 评论列表 -->
+  <% if (comments.length === 0) { %>
+    <p class="no-comments">暂无评论，来说点什么吧</p>
+  <% } else { %>
+    <div class="comments-list">
+      <% comments.forEach(function(comment) { %>
+        <div class="comment-item">
+          <div class="comment-header">
+            <a href="/user/<%= encodeURIComponent(comment.author_name) %>" class="comment-avatar-link">
+              <img src="/avatar/<%= encodeURIComponent(comment.author_name) %>"
+                   class="comment-avatar" alt="<%= comment.author_name %>">
+            </a>
+            <a href="/user/<%= encodeURIComponent(comment.author_name) %>" class="comment-author"><%= comment.author_name %></a>
+            <span class="comment-date"><%= new Date(comment.created_at).toLocaleDateString('zh-CN') %></span>
+            <% if (currentUser && currentUser.id === comment.author_id) { %>
+              <form action="/comments/<%= comment.id %>?_method=DELETE" method="POST" style="display:inline; margin-left:auto;">
+                <button type="submit" class="comment-delete" onclick="return confirm('删除这条评论？')">删除</button>
+              </form>
+            <% } %>
+          </div>
+          <p class="comment-content"><%= comment.content %></p>
+        </div>
+      <% }) %>
+    </div>
+  <% } %>
+</section>
 
 <%- include('partials/footer') %>

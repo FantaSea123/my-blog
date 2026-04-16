@@ -4,6 +4,7 @@ const methodOverride = require('method-override');
 const dotenv = require('dotenv');
 const path = require('path');
 const { initDatabase } = require('./database');
+const { avatarColor, avatarInitial } = require('./helpers/avatar');
 
 dotenv.config();
 
@@ -24,18 +25,24 @@ app.use(session({
 }));
 
 
-// 让所有页面都能访问当前登录用户
+// 让所有页面都能访问当前登录用户和头像工具函数
 app.use((req, res, next) => {
   res.locals.currentUser = req.session.user || null;
+  res.locals.avatarColor = avatarColor;
+  res.locals.avatarInitial = avatarInitial;
   next();
 });
 
 // ========== 路由 ==========
 const postRoutes = require('./routes/posts');
 const authRoutes = require('./routes/auth');
+const avatarRoutes = require('./routes/avatar');
+const userRoutes = require('./routes/user');
 
 app.use('/', postRoutes);
 app.use('/auth', authRoutes);
+app.use('/avatar', avatarRoutes);
+app.use('/user', userRoutes);
 
 // ========== 启动服务器 ==========
 async function start() {

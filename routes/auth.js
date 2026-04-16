@@ -3,6 +3,18 @@ const router = express.Router();
 const bcrypt = require('bcryptjs');
 const { getDb, saveDatabase } = require('../database');
 
+// 封装查询方法
+function queryOne(db, sql, params = []) {
+  const stmt = db.prepare(sql);
+  stmt.bind(params);
+  let result = null;
+  if (stmt.step()) {
+    result = stmt.getAsObject();
+  }
+  stmt.free();
+  return result;
+}
+
 // 注册页面
 router.get('/register', (req, res) => {
   res.render('register', { error: null });
@@ -14,7 +26,6 @@ router.post('/register', async (req, res) => {
     const { username, email, password, confirmPassword } = req.body;
     const db = getDb();
 
-    // 验证
     if (password !== confirmPassword) {
       return res.render('register', { error: '两次密码不一致' });
     }
@@ -23,34 +34,28 @@ router.post('/register', async (req, res) => {
       return res.render('register', { error: '密码至少6个字符' });
     }
 
-    // 检查用户是否已存在
-    const existing = db.exec(
+    const existing = queryOne(db,
       "SELECT id FROM users WHERE email = ? OR username = ?",
       [email, username]
     );
 
-    if (existing.length > 0 && existing[0].values.length > 0) {
+    if (existing) {
       return res.render('register', { error: '用户名或邮箱已被注册' });
     }
 
-    // 加密密码
     const hashedPassword = await bcrypt.hash(password, 12);
 
-    // 插入用户
     db.run(
       "INSERT INTO users (username, email, password) VALUES (?, ?, ?)",
       [username, email, hashedPassword]
     );
 
+    const user = queryOne(db, "SELECT MAX(id) as id FROM users");
+
     saveDatabase();
 
-    // 获取新用户ID
-    const result = db.exec("SELECT last_insert_rowid() as id");
-    const userId = result[0].values[0][0];
-
-    // 自动登录
     req.session.user = {
-      id: userId,
+      id: user.id,
       username: username
     };
 
@@ -71,31 +76,23 @@ router.post('/login', async (req, res) => {
     const { email, password } = req.body;
     const db = getDb();
 
-    // 查找用户
-    const result = db.exec(
+    const user = queryOne(db,
       "SELECT id, username, password FROM users WHERE email = ?",
       [email]
     );
 
-    if (result.length === 0 || result[0].values.length === 0) {
+    if (!user) {
       return res.render('login', { error: '邮箱或密码错误' });
     }
 
-    const user = result[0].values[0];
-    const userId = user[0];
-    const username = user[1];
-    const hashedPassword = user[2];
-
-    // 验证密码
-    const isMatch = await bcrypt.compare(password, hashedPassword);
+    const isMatch = await bcrypt.compare(password, user.password);
     if (!isMatch) {
       return res.render('login', { error: '邮箱或密码错误' });
     }
 
-    // 设置登录状态
     req.session.user = {
-      id: userId,
-      username: username
+      id: user.id,
+      username: user.username
     };
 
     res.redirect('/');
@@ -111,3 +108,4 @@ router.get('/logout', (req, res) => {
 });
 
 module.exports = router;
+

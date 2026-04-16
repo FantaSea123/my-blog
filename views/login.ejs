@@ -1,7 +1,7 @@
 <%- include('partials/header') %>
 
 <div class="auth-container">
-  <h1>🔑 登录</h1>
+  <h1>登录</h1>
 
   <% if (error) { %>
     <div class="alert alert-error"><%= error %></div>
@@ -21,7 +21,7 @@
     <button type="submit" class="btn btn-primary btn-block">登录</button>
   </form>
 
-  <p class="auth-switch">还没有账号？<a href="/auth/register">去注册</a></p>
+  <p class="auth-switch">还没有账号？<a href="/auth/register">立即注册</a></p>
 </div>
 
 <%- include('partials/footer') %>

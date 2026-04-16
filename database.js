@@ -44,6 +44,19 @@ async function initDatabase() {
       FOREIGN KEY (author_id) REFERENCES users(id)
     )
   `);
+    // 创建评论表
+  db.run(`
+    CREATE TABLE IF NOT EXISTS comments (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      content TEXT NOT NULL,
+      post_id INTEGER NOT NULL,
+      author_id INTEGER NOT NULL,
+      created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+      FOREIGN KEY (post_id) REFERENCES posts(id),
+      FOREIGN KEY (author_id) REFERENCES users(id)
+    )
+  `);
+
 
   console.log('✅ 数据库初始化成功');
   saveDatabase();
