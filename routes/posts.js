@@ -21,6 +21,30 @@ function queryOne(db, sql, params = []) {
   return results.length > 0 ? results[0] : null;
 }
 
+function buildCommentTree(flatComments) {
+  const byId = new Map();
+  const roots = [];
+
+  flatComments.forEach((comment) => {
+    byId.set(comment.id, { ...comment, children: [] });
+  });
+
+  byId.forEach((comment) => {
+    if (comment.parent_id) {
+      const parent = byId.get(comment.parent_id);
+      if (parent) {
+        parent.children.push(comment);
+      } else {
+        roots.push(comment);
+      }
+    } else {
+      roots.push(comment);
+    }
+  });
+
+  return roots;
+}
+
 // ========== 首页 - 文章列表 ==========
 router.get('/', (req, res) => {
   const db = getDb();
@@ -30,13 +54,13 @@ router.get('/', (req, res) => {
   const page = Math.max(1, parseInt(req.query.page) || 1);
 
   let where = '';
-  let params = [];
+  const params = [];
 
   if (search) {
-    where = " WHERE (posts.title LIKE ? OR posts.content LIKE ?)";
+    where = ' WHERE (posts.title LIKE ? OR posts.content LIKE ?)';
     params.push(`%${search}%`, `%${search}%`);
   } else if (tag) {
-    where = " WHERE posts.tags LIKE ?";
+    where = ' WHERE posts.tags LIKE ?';
     params.push(`%${tag}%`);
   }
 
@@ -60,7 +84,7 @@ router.get('/', (req, res) => {
   let posts = queryAll(db, sql, [...params, PAGE_SIZE, (page - 1) * PAGE_SIZE]);
 
   // 生成摘要
-  posts = posts.map(post => {
+  posts = posts.map((post) => {
     if (!post.summary) {
       post.summary = post.content
         .replace(/[#*`>\-\[\]()!]/g, '')
@@ -84,11 +108,11 @@ router.post('/posts', isAuthenticated, (req, res) => {
     const db = getDb();
 
     db.run(
-      "INSERT INTO posts (title, content, summary, tags, author_id) VALUES (?, ?, ?, ?, ?)",
+      'INSERT INTO posts (title, content, summary, tags, author_id) VALUES (?, ?, ?, ?, ?)',
       [title, content, summary || '', tags || '', req.session.user.id]
     );
 
-    const post = queryOne(db, "SELECT MAX(id) as id FROM posts");
+    const post = queryOne(db, 'SELECT MAX(id) as id FROM posts');
     const postId = post.id;
 
     saveDatabase();
@@ -103,10 +127,6 @@ router.get('/posts/:id', (req, res) => {
   const db = getDb();
   const id = Number(req.params.id);
 
-  // 增加浏览量
-  db.run("UPDATE posts SET views = views + 1 WHERE id = ?", [id]);
-  saveDatabase();
-
   const post = queryOne(db,
     `SELECT posts.*, users.username as author_name
      FROM posts
@@ -119,20 +139,82 @@ router.get('/posts/:id', (req, res) => {
     return res.status(404).send('文章不存在');
   }
 
+  // 增加浏览量
+  db.run('UPDATE posts SET views = views + 1 WHERE id = ?', [id]);
+  saveDatabase();
+  post.views += 1;
+
   // Markdown 转 HTML
   post.htmlContent = marked(post.content);
 
-  // 查询评论
-  const comments = queryAll(db,
+  // 点赞数据
+  const likesRow = queryOne(db, 'SELECT COUNT(*) as total FROM post_likes WHERE post_id = ?', [id]);
+  const likesCount = likesRow ? likesRow.total : 0;
+
+  let likedByCurrentUser = false;
+  if (req.session.user) {
+    const liked = queryOne(
+      db,
+      'SELECT id FROM post_likes WHERE post_id = ? AND user_id = ?',
+      [id, req.session.user.id]
+    );
+    likedByCurrentUser = !!liked;
+  }
+
+  // 查询评论（平铺）
+  const flatComments = queryAll(db,
     `SELECT comments.*, users.username as author_name
      FROM comments
      JOIN users ON comments.author_id = users.id
      WHERE comments.post_id = ?
-     ORDER BY comments.created_at DESC`,
+     ORDER BY comments.created_at ASC`,
     [id]
   );
 
-  res.render('post', { post, comments });
+  // 组装评论树
+  const comments = buildCommentTree(flatComments);
+
+  res.render('post', {
+    post,
+    comments,
+    commentsCount: flatComments.length,
+    likesCount,
+    likedByCurrentUser,
+  });
+});
+
+// ========== 点赞文章 ==========
+router.post('/posts/:id/likes', isAuthenticated, (req, res) => {
+  const db = getDb();
+  const id = Number(req.params.id);
+
+  const post = queryOne(db, 'SELECT id FROM posts WHERE id = ?', [id]);
+  if (!post) {
+    return res.status(404).send('文章不存在');
+  }
+
+  try {
+    db.run('INSERT INTO post_likes (post_id, user_id) VALUES (?, ?)', [id, req.session.user.id]);
+    saveDatabase();
+  } catch (err) {
+    // UNIQUE 约束冲突：说明已经点赞，视为幂等成功
+    if (!String(err.message || '').includes('UNIQUE')) {
+      console.error(err);
+    }
+  }
+
+  res.redirect(`/posts/${id}`);
+});
+
+// ========== 取消点赞 ==========
+router.delete('/posts/:id/likes', isAuthenticated, (req, res) => {
+  const db = getDb();
+  const id = Number(req.params.id);
+
+  db.run('DELETE FROM post_likes WHERE post_id = ? AND user_id = ?', [id, req.session.user.id]);
+  saveDatabase();
+
+  res.redirect(`/posts/${id}`);
 });
 
 // ========== 编辑文章页面 ==========
@@ -140,7 +222,7 @@ router.get('/posts/:id/edit', isAuthenticated, (req, res) => {
   const db = getDb();
   const id = Number(req.params.id);
 
-  const post = queryOne(db, "SELECT * FROM posts WHERE id = ?", [id]);
+  const post = queryOne(db, 'SELECT * FROM posts WHERE id = ?', [id]);
 
   if (!post) {
     return res.status(404).send('文章不存在');
@@ -161,7 +243,7 @@ router.put('/posts/:id', isAuthenticated, (req, res) => {
     const id = Number(req.params.id);
 
     db.run(
-      "UPDATE posts SET title = ?, content = ?, summary = ?, tags = ?, updated_at = CURRENT_TIMESTAMP WHERE id = ? AND author_id = ?",
+      'UPDATE posts SET title = ?, content = ?, summary = ?, tags = ?, updated_at = CURRENT_TIMESTAMP WHERE id = ? AND author_id = ?',
       [title, content, summary || '', tags || '', id, req.session.user.id]
     );
 
@@ -177,18 +259,19 @@ router.delete('/posts/:id', isAuthenticated, (req, res) => {
   const db = getDb();
   const id = Number(req.params.id);
 
-  // 先删除文章的所有评论
-  db.run("DELETE FROM comments WHERE post_id = ?", [id]);
-  db.run("DELETE FROM posts WHERE id = ? AND author_id = ?", [id, req.session.user.id]);
+  // 先删除文章的点赞和所有评论
+  db.run('DELETE FROM post_likes WHERE post_id = ?', [id]);
+  db.run('DELETE FROM comments WHERE post_id = ?', [id]);
+  db.run('DELETE FROM posts WHERE id = ? AND author_id = ?', [id, req.session.user.id]);
 
   saveDatabase();
   res.redirect('/');
 });
 
-// ========== 发表评论 ==========
+// ========== 发表评论 / 回复评论 ==========
 router.post('/posts/:id/comments', isAuthenticated, (req, res) => {
   try {
-    const { content } = req.body;
+    const { content, parent_id } = req.body;
     const db = getDb();
     const id = Number(req.params.id);
 
@@ -196,9 +279,24 @@ router.post('/posts/:id/comments', isAuthenticated, (req, res) => {
       return res.redirect(`/posts/${id}`);
     }
 
+    const post = queryOne(db, 'SELECT id FROM posts WHERE id = ?', [id]);
+    if (!post) {
+      return res.status(404).send('文章不存在');
+    }
+
+    let parentId = null;
+    if (parent_id !== undefined && parent_id !== null && parent_id !== '') {
+      parentId = Number(parent_id);
+      const parent = queryOne(db, 'SELECT id, post_id FROM comments WHERE id = ?', [parentId]);
+
+      if (!parent || Number(parent.post_id) !== id) {
+        return res.redirect(`/posts/${id}`);
+      }
+    }
+
     db.run(
-      "INSERT INTO comments (content, post_id, author_id) VALUES (?, ?, ?)",
-      [content.trim(), id, req.session.user.id]
+      'INSERT INTO comments (content, post_id, author_id, parent_id) VALUES (?, ?, ?, ?)',
+      [content.trim(), id, req.session.user.id, parentId]
     );
 
     saveDatabase();
@@ -215,7 +313,7 @@ router.delete('/comments/:id', isAuthenticated, (req, res) => {
   const id = Number(req.params.id);
 
   const comment = queryOne(db,
-    "SELECT post_id, author_id FROM comments WHERE id = ?",
+    'SELECT id, post_id, author_id FROM comments WHERE id = ?',
     [id]
   );
 
@@ -224,7 +322,17 @@ router.delete('/comments/:id', isAuthenticated, (req, res) => {
   }
 
   if (comment.author_id === req.session.user.id) {
-    db.run("DELETE FROM comments WHERE id = ?", [id]);
+    const child = queryOne(db, 'SELECT id FROM comments WHERE parent_id = ? LIMIT 1', [id]);
+
+    if (child) {
+      db.run(
+        'UPDATE comments SET content = ?, is_deleted = 1, deleted_at = CURRENT_TIMESTAMP WHERE id = ?',
+        ['', id]
+      );
+    } else {
+      db.run('DELETE FROM comments WHERE id = ?', [id]);
+    }
+
     saveDatabase();
   }
 

@@ -440,6 +440,28 @@ a:hover {
   margin-bottom: 14px;
 }
 
+.post-like-actions {
+  margin-bottom: 14px;
+}
+
+.btn-like {
+  padding: 6px 14px;
+  font-size: 0.82rem;
+}
+
+.btn-like--active {
+  background: var(--primary-light);
+  color: var(--primary-dark);
+  border: 1px solid rgba(99, 102, 241, 0.2);
+  box-shadow: none;
+}
+
+.btn-like--active:hover {
+  background: #e0e7ff;
+  color: var(--primary-dark);
+  transform: none;
+}
+
 .post-content {
   font-size: 1.05rem;
   line-height: 1.85;
@@ -819,6 +841,79 @@ a:hover {
   margin-left: 38px;
 }
 
+.comment-body {
+  margin-left: 38px;
+}
+
+.comment-body .comment-content {
+  margin-left: 0;
+}
+
+.comment-content--deleted {
+  color: var(--text-light);
+  font-style: italic;
+}
+
+.comment-item--deleted .comment-avatar {
+  opacity: 0.5;
+}
+
+.comment-reply-box {
+  margin-top: 8px;
+}
+
+.comment-reply-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  color: var(--text-muted);
+  font-size: 0.82rem;
+  cursor: pointer;
+  user-select: none;
+}
+
+.comment-reply-btn:hover {
+  color: var(--primary);
+}
+
+.comment-reply-form {
+  margin-top: 10px;
+  background: var(--border-light);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  padding: 12px;
+}
+
+.comment-reply-form textarea {
+  width: 100%;
+  padding: 9px 12px;
+  border: 1.5px solid var(--border);
+  border-radius: var(--radius-sm);
+  font-size: 0.88rem;
+  font-family: inherit;
+  resize: vertical;
+  outline: none;
+  margin-bottom: 10px;
+  min-height: 68px;
+  background: white;
+  color: var(--text);
+}
+
+.comment-reply-form textarea:focus {
+  border-color: var(--primary);
+  box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.1);
+}
+
+.comment-children {
+  margin-top: 14px;
+  margin-left: 14px;
+  padding-left: 14px;
+  border-left: 2px solid var(--border-light);
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+}
+
 /* ========== 个人主页 ========== */
 .profile-page {
   max-width: 740px;
@@ -923,6 +1018,15 @@ a:hover {
 
   .profile-name {
     font-size: 1.3rem;
+  }
+
+  .comment-body {
+    margin-left: 0;
+  }
+
+  .comment-children {
+    margin-left: 10px;
+    padding-left: 10px;
   }
 }
 

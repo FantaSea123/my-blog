@@ -11,7 +11,26 @@
       <span><%= new Date(post.created_at).toLocaleDateString('zh-CN', { year: 'numeric', month: 'long', day: 'numeric' }) %></span>
       <span class="post-meta-dot"></span>
       <span><%= post.views %> 次阅读</span>
+      <span class="post-meta-dot"></span>
+      <span><%= likesCount %> 点赞</span>
     </div>
+
+    <div class="post-like-actions">
+      <% if (currentUser) { %>
+        <% if (likedByCurrentUser) { %>
+          <form action="/posts/<%= post.id %>/likes?_method=DELETE" method="POST" style="display:inline;">
+            <button type="submit" class="btn btn-like btn-like--active">已点赞</button>
+          </form>
+        <% } else { %>
+          <form action="/posts/<%= post.id %>/likes" method="POST" style="display:inline;">
+            <button type="submit" class="btn btn-outline btn-like">点赞</button>
+          </form>
+        <% } %>
+      <% } else { %>
+        <a href="/auth/login" class="btn btn-outline btn-like">登录后点赞</a>
+      <% } %>
+    </div>
+
     <% if (post.tags) { %>
       <div class="post-tags" style="margin-top: 14px;">
         <% post.tags.split(',').forEach(function(t) { %>
@@ -38,14 +57,12 @@
   <% } %>
 </article>
 
-<!-- 评论区 -->
 <section class="comments-section">
   <div class="comments-header">
     评论
-    <span class="comments-count"><%= comments.length %></span>
+    <span class="comments-count"><%= commentsCount %></span>
   </div>
 
-  <!-- 发表评论 -->
   <% if (currentUser) { %>
     <form action="/posts/<%= post.id %>/comments" method="POST" class="comment-form">
       <textarea name="content" rows="3" required placeholder="写下你的想法..."></textarea>
@@ -55,28 +72,12 @@
     <p class="login-hint"><a href="/auth/login">登录</a> 后才能发表评论</p>
   <% } %>
 
-  <!-- 评论列表 -->
-  <% if (comments.length === 0) { %>
+  <% if (commentsCount === 0) { %>
     <p class="no-comments">暂无评论，来说点什么吧</p>
   <% } else { %>
     <div class="comments-list">
       <% comments.forEach(function(comment) { %>
-        <div class="comment-item">
-          <div class="comment-header">
-            <a href="/user/<%= encodeURIComponent(comment.author_name) %>" class="comment-avatar-link">
-              <img src="/avatar/<%= encodeURIComponent(comment.author_name) %>"
-                   class="comment-avatar" alt="<%= comment.author_name %>">
-            </a>
-            <a href="/user/<%= encodeURIComponent(comment.author_name) %>" class="comment-author"><%= comment.author_name %></a>
-            <span class="comment-date"><%= new Date(comment.created_at).toLocaleDateString('zh-CN') %></span>
-            <% if (currentUser && currentUser.id === comment.author_id) { %>
-              <form action="/comments/<%= comment.id %>?_method=DELETE" method="POST" style="display:inline; margin-left:auto;">
-                <button type="submit" class="comment-delete" onclick="return confirm('删除这条评论？')">删除</button>
-              </form>
-            <% } %>
-          </div>
-          <p class="comment-content"><%= comment.content %></p>
-        </div>
+        <%- include('partials/comment-item', { comment: comment, post: post }) %>
       <% }) %>
     </div>
   <% } %>

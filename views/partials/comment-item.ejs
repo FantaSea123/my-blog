@@ -1,0 +1,42 @@
+<div class="comment-item <%= comment.is_deleted ? 'comment-item--deleted' : '' %>" id="comment-<%= comment.id %>">
+  <div class="comment-header">
+    <a href="/user/<%= encodeURIComponent(comment.author_name) %>" class="comment-avatar-link">
+      <img src="/avatar/<%= encodeURIComponent(comment.author_name) %>" class="comment-avatar" alt="<%= comment.author_name %>">
+    </a>
+    <a href="/user/<%= encodeURIComponent(comment.author_name) %>" class="comment-author"><%= comment.author_name %></a>
+    <span class="comment-date"><%= new Date(comment.created_at).toLocaleDateString('zh-CN') %></span>
+
+    <% if (currentUser && currentUser.id === comment.author_id) { %>
+      <form action="/comments/<%= comment.id %>?_method=DELETE" method="POST" style="display:inline; margin-left:auto;">
+        <button type="submit" class="comment-delete" onclick="return confirm('删除这条评论？')">删除</button>
+      </form>
+    <% } %>
+  </div>
+
+  <div class="comment-body">
+    <% if (comment.is_deleted) { %>
+      <p class="comment-content comment-content--deleted">该评论已删除</p>
+    <% } else { %>
+      <p class="comment-content"><%= comment.content %></p>
+    <% } %>
+
+    <% if (currentUser) { %>
+      <details class="comment-reply-box">
+        <summary class="comment-reply-btn">回复</summary>
+        <form action="/posts/<%= post.id %>/comments" method="POST" class="comment-reply-form">
+          <input type="hidden" name="parent_id" value="<%= comment.id %>">
+          <textarea name="content" rows="2" required placeholder="回复 <%= comment.author_name %>..."></textarea>
+          <button type="submit" class="btn btn-primary">发送回复</button>
+        </form>
+      </details>
+    <% } %>
+
+    <% if (comment.children && comment.children.length > 0) { %>
+      <div class="comment-children">
+        <% comment.children.forEach(function(child) { %>
+          <%- include('comment-item', { comment: child, post: post }) %>
+        <% }) %>
+      </div>
+    <% } %>
+  </div>
+</div>
