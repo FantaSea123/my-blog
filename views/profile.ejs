@@ -1,13 +1,10 @@
-<%- include('partials/header') %>
+﻿<%- include('partials/header') %>
 
 <a href="/" class="back-link">← 返回首页</a>
 
 <div class="profile-page">
-
-  <!-- 用户信息卡片 -->
   <div class="profile-card">
-    <img src="/avatar/<%= encodeURIComponent(profileUser.username) %>"
-         class="profile-avatar" alt="<%= profileUser.username %>">
+    <img src="/avatar/<%= encodeURIComponent(profileUser.username) %>" class="profile-avatar" alt="<%= profileUser.username %>">
     <div class="profile-info">
       <h1 class="profile-name"><%= profileUser.username %></h1>
       <p class="profile-bio"><%= profileUser.bio || '这个人很懒，什么都没写...' %></p>
@@ -23,10 +20,9 @@
     </div>
   </div>
 
-  <!-- 文章列表 -->
   <% if (posts.length === 0) { %>
     <div class="empty-state">
-      <div class="empty-state-icon">✦</div>
+      <div class="empty-state-icon">✨</div>
       <h2>还没有文章</h2>
       <p>这位作者还没有发布任何内容</p>
     </div>
@@ -59,7 +55,6 @@
       <% }) %>
     </div>
   <% } %>
-
 </div>
 
 <%- include('partials/footer') %>

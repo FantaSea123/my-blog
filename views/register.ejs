@@ -1,4 +1,4 @@
-<%- include('partials/header') %>
+﻿<%- include('partials/header') %>
 
 <div class="auth-container">
   <h1>注册</h1>
@@ -8,6 +8,8 @@
   <% } %>
 
   <form action="/auth/register" method="POST" class="auth-form">
+    <input type="hidden" name="_csrf" value="<%= csrfToken %>">
+
     <div class="form-group">
       <label for="username">用户名</label>
       <input type="text" id="username" name="username" required placeholder="取个名字">

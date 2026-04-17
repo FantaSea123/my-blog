@@ -1,4 +1,6 @@
-<%- include('partials/header') %>
+﻿<%- include('partials/header') %>
+
+<link rel="stylesheet" href="https://unpkg.com/easymde/dist/easymde.min.css">
 
 <div class="form-container">
   <h1>写新文章</h1>
@@ -7,7 +9,9 @@
     <div class="alert alert-error"><%= error %></div>
   <% } %>
 
-  <form action="/posts" method="POST" class="post-form">
+  <form action="/posts" method="POST" class="post-form" id="post-form">
+    <input type="hidden" name="_csrf" value="<%= csrfToken %>">
+
     <div class="form-group">
       <label for="title">标题</label>
       <input type="text" id="title" name="title" required placeholder="输入文章标题">
@@ -20,8 +24,7 @@
 
     <div class="form-group">
       <label for="content">正文</label>
-      <p class="form-hint">支持 Markdown 语法</p>
-      <textarea id="content" name="content" rows="18" required placeholder="开始写作..."></textarea>
+      <textarea id="content" name="content" required placeholder="开始写作..."></textarea>
     </div>
 
     <div class="form-group">
@@ -35,5 +38,16 @@
     </div>
   </form>
 </div>
+
+<script src="https://unpkg.com/easymde/dist/easymde.min.js"></script>
+<script>
+  const easyMDE = new EasyMDE({
+    element: document.getElementById('content'),
+    spellChecker: false,
+    autosave: { enabled: true, uniqueId: 'new-post', delay: 1000 },
+    placeholder: '开始写作，支持 Markdown...',
+    toolbar: ['bold', 'italic', 'heading', '|', 'quote', 'unordered-list', 'ordered-list', '|', 'link', 'image', '|', 'preview', 'side-by-side', 'fullscreen', '|', 'guide'],
+  });
+</script>
 
 <%- include('partials/footer') %>

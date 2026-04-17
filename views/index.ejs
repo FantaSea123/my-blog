@@ -1,4 +1,4 @@
-<%- include('partials/header') %>
+﻿<%- include('partials/header') %>
 
 <section class="hero">
   <h1>欢迎来到 <span>我的博客</span></h1>
@@ -21,12 +21,13 @@
 
 <% if (posts.length === 0) { %>
   <div class="empty-state">
-    <div class="empty-state-icon">✦</div>
+    <div class="empty-state-icon">✨</div>
     <h2>暂无文章</h2>
     <p>还没有任何内容，快去写第一篇吧</p>
-    <% if (currentUser) { %>
+
+    <% if (currentUser && isAdmin) { %>
       <a href="/posts/new" class="btn btn-primary">写文章</a>
-    <% } else { %>
+    <% } else if (!currentUser) { %>
       <a href="/auth/register" class="btn btn-primary">注册开始写作</a>
     <% } %>
   </div>
@@ -64,8 +65,7 @@
   <% if (totalPages > 1) { %>
     <nav class="pagination">
       <% if (page > 1) { %>
-        <a href="/?page=<%= page - 1 %><%= search ? '&search=' + encodeURIComponent(search) : '' %><%= tag ? '&tag=' + encodeURIComponent(tag) : '' %>"
-           class="page-btn">← 上一页</a>
+        <a href="/?page=<%= page - 1 %><%= search ? '&search=' + encodeURIComponent(search) : '' %><%= tag ? '&tag=' + encodeURIComponent(tag) : '' %>" class="page-btn">← 上一页</a>
       <% } else { %>
         <span class="page-btn page-btn--disabled">← 上一页</span>
       <% } %>
@@ -76,8 +76,7 @@
             <% if (i === page) { %>
               <span class="page-num page-num--active"><%= i %></span>
             <% } else { %>
-              <a href="/?page=<%= i %><%= search ? '&search=' + encodeURIComponent(search) : '' %><%= tag ? '&tag=' + encodeURIComponent(tag) : '' %>"
-                 class="page-num"><%= i %></a>
+              <a href="/?page=<%= i %><%= search ? '&search=' + encodeURIComponent(search) : '' %><%= tag ? '&tag=' + encodeURIComponent(tag) : '' %>" class="page-num"><%= i %></a>
             <% } %>
           <% } else if (i === page - 3 || i === page + 3) { %>
             <span class="page-ellipsis">…</span>
@@ -86,8 +85,7 @@
       </div>
 
       <% if (page < totalPages) { %>
-        <a href="/?page=<%= page + 1 %><%= search ? '&search=' + encodeURIComponent(search) : '' %><%= tag ? '&tag=' + encodeURIComponent(tag) : '' %>"
-           class="page-btn">下一页 →</a>
+        <a href="/?page=<%= page + 1 %><%= search ? '&search=' + encodeURIComponent(search) : '' %><%= tag ? '&tag=' + encodeURIComponent(tag) : '' %>" class="page-btn">下一页 →</a>
       <% } else { %>
         <span class="page-btn page-btn--disabled">下一页 →</span>
       <% } %>

@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html lang="zh-CN">
 <head>
   <meta charset="UTF-8">
@@ -15,16 +15,22 @@
       <a href="/" class="logo">My<span>Blog</span></a>
       <div class="nav-links">
         <form class="search-form" action="/" method="GET">
-          <input type="text" name="search" placeholder="搜索文章..."
-                 value="<%= typeof search !== 'undefined' ? search : '' %>">
+          <input type="text" name="search" placeholder="搜索文章..." value="<%= typeof search !== 'undefined' ? search : '' %>">
         </form>
+
         <% if (currentUser) { %>
-          <a href="/posts/new" class="btn btn-primary">写文章</a>
+          <% if (isAdmin) { %>
+            <a href="/posts/new" class="btn btn-primary">写文章</a>
+          <% } %>
+
           <a href="/user/<%= encodeURIComponent(currentUser.username) %>" title="<%= currentUser.username %>">
-            <img src="/avatar/<%= encodeURIComponent(currentUser.username) %>"
-                 class="nav-avatar" alt="<%= currentUser.username %>">
+            <img src="/avatar/<%= encodeURIComponent(currentUser.username) %>" class="nav-avatar" alt="<%= currentUser.username %>">
           </a>
-          <a href="/auth/logout" class="btn btn-ghost">退出</a>
+
+          <form action="/auth/logout" method="POST" style="display:inline;">
+            <input type="hidden" name="_csrf" value="<%= csrfToken %>">
+            <button type="submit" class="btn btn-ghost">退出</button>
+          </form>
         <% } else { %>
           <a href="/auth/login" class="btn btn-ghost">登录</a>
           <a href="/auth/register" class="btn btn-primary">注册</a>
@@ -32,4 +38,5 @@
       </div>
     </div>
   </nav>
+
   <main class="container main-content">

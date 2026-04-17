@@ -1,4 +1,4 @@
-<%- include('partials/header') %>
+﻿<%- include('partials/header') %>
 
 <a href="/" class="back-link">← 返回首页</a>
 
@@ -19,10 +19,12 @@
       <% if (currentUser) { %>
         <% if (likedByCurrentUser) { %>
           <form action="/posts/<%= post.id %>/likes?_method=DELETE" method="POST" style="display:inline;">
+            <input type="hidden" name="_csrf" value="<%= csrfToken %>">
             <button type="submit" class="btn btn-like btn-like--active">已点赞</button>
           </form>
         <% } else { %>
           <form action="/posts/<%= post.id %>/likes" method="POST" style="display:inline;">
+            <input type="hidden" name="_csrf" value="<%= csrfToken %>">
             <button type="submit" class="btn btn-outline btn-like">点赞</button>
           </form>
         <% } %>
@@ -49,8 +51,8 @@
   <% if (currentUser && currentUser.id === post.author_id) { %>
     <div class="post-actions">
       <a href="/posts/<%= post.id %>/edit" class="btn btn-outline">编辑文章</a>
-      <form action="/posts/<%= post.id %>?_method=DELETE" method="POST" style="display:inline"
-            onsubmit="return confirm('确定要删除这篇文章吗？')">
+      <form action="/posts/<%= post.id %>?_method=DELETE" method="POST" style="display:inline;" onsubmit="return confirm('确定要删除这篇文章吗？')">
+        <input type="hidden" name="_csrf" value="<%= csrfToken %>">
         <button type="submit" class="btn btn-danger">删除文章</button>
       </form>
     </div>
@@ -63,17 +65,10 @@
     <span class="comments-count"><%= commentsCount %></span>
   </div>
 
-  <% if (currentUser) { %>
-    <form action="/posts/<%= post.id %>/comments" method="POST" class="comment-form">
-      <textarea name="content" rows="3" required placeholder="写下你的想法..."></textarea>
-      <button type="submit" class="btn btn-primary">发表评论</button>
-    </form>
-  <% } else { %>
-    <p class="login-hint"><a href="/auth/login">登录</a> 后才能发表评论</p>
-  <% } %>
+  <p class="login-hint">当前站点已关闭评论功能，普通用户仅支持浏览与点赞。</p>
 
   <% if (commentsCount === 0) { %>
-    <p class="no-comments">暂无评论，来说点什么吧</p>
+    <p class="no-comments">暂无评论</p>
   <% } else { %>
     <div class="comments-list">
       <% comments.forEach(function(comment) { %>
