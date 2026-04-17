@@ -25,10 +25,8 @@
     <h2>暂无文章</h2>
     <p>还没有任何内容，快去写第一篇吧</p>
 
-    <% if (currentUser && isAdmin) { %>
+    <% if (isAdmin) { %>
       <a href="/posts/new" class="btn btn-primary">写文章</a>
-    <% } else if (!currentUser) { %>
-      <a href="/auth/register" class="btn btn-primary">注册开始写作</a>
     <% } %>
   </div>
 <% } else { %>
